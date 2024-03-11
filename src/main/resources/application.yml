@@ -9,24 +9,28 @@ spring:
     activate:
       on-profile: "common"
   application:
-    name: demo
+    name: instagram_mock
   sql:
     init:
       platform: mysql
   datasource:
-    url: jdbc:mysql://localhost:3306/demo?autoReconnect=true&setTimezone=Asia/Seoul # 변경해주세요
-    username: # username
-    password: # password
+    url: ${db_host} # 변경해주세요
+    username: ${db_username} # username
+    password: ${db_password} # password
     driver-class-name: com.mysql.cj.jdbc.Driver # mysql 8버전
     # driver-class-name: com.mysql.jdbc.Driver # mysql 5버전
   OAuth2:
     google:
       url: https://accounts.google.com/o/oauth2/v2/auth
-      client-id: # client-id
-      client-secret:  # client-secret
-      callback-login-url: http://localhost:9000/app/users/auth/google/login/callback # 등록한 정보에 맞게 수정해주세요
+      client-id: ${google_client_id} # client-id
+      client-secret: ${ google_client_secret } # client-secret
+      callback-login-url: ${google_callback_login_url} # 등록한 정보에 맞게 수정해주세요
       scope: https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile # 등록한 정보에 맞게 수정해주세요
-
+    kakao:
+      url: https://kauth.kakao.com/oauth/authorize
+      client-id: ${kakao_client_id}
+      client-secret: ${kakao_client_secret}
+      callback-login-url: ${kakao_callback_login_url}
 spring.sql.init.platform: mysql
 server:
   port: 9000
@@ -47,7 +51,7 @@ springdoc:
     - /**
 
 jwt:
-  secret-key: UwKYibQQgkW7g-*k.ap9kje-wxBHb9wdXoBT4vnt4P3sJWt-Nu  # JWT key. 수정해주세요
+  secret-key: ${jwt_secret_key}  # JWT key. 수정해주세요
 
 ---
 spring:
@@ -57,7 +61,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
       # create, update, create-drop, none 등의 옵션이 있습니다.
       # create: 기존테이블 삭제 후 다시 생성
       # update: 변경된 부분만 반영
@@ -89,4 +93,5 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
 

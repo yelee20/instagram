@@ -3,3 +3,4 @@ build/
 logs/
 .idea/
 out/
+.DS_Store

@@ -25,7 +25,7 @@ public class GoogleUser {
         return User.builder()
                 .email(this.email)
                 .password("NONE")
-                .name(this.name)
+                .fullName(this.name)
                 .isOAuth(true)
                 .build();
     }

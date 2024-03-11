@@ -3,20 +3,28 @@ package com.example.demo.src.user;
 
 import com.example.demo.common.Constant.SocialLoginType;
 import com.example.demo.common.oauth.OAuthService;
+import com.example.demo.src.user.entity.User;
 import com.example.demo.utils.JwtService;
 import lombok.RequiredArgsConstructor;
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponse;
 import com.example.demo.src.user.model.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 
+import static com.example.demo.common.entity.BaseEntity.State.ACTIVE;
 import static com.example.demo.common.response.BaseResponseStatus.*;
-import static com.example.demo.utils.ValidationRegex.isRegexEmail;
+import static com.example.demo.utils.ValidationRegex.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,18 +47,42 @@ public class UserController {
      */
     // Body
     @ResponseBody
+    @Validated
     @PostMapping("")
-    public BaseResponse<PostUserRes> createUser(@RequestBody PostUserReq postUserReq) {
-        // TODO: email 관련한 짧은 validation 예시입니다. 그 외 더 부가적으로 추가해주세요!
-        if(postUserReq.getEmail() == null){
-            return new BaseResponse<>(USERS_EMPTY_EMAIL);
+    public BaseResponse<PostUserRes> createUser(@RequestBody @Valid PostUserReq postUserReq) {
+
+        System.out.println(postUserReq.toString());
+        LocalDate latestAcceptableBirthDate = LocalDate.of(2016, 1, 1);
+        int comparisonResult = latestAcceptableBirthDate.compareTo(postUserReq.getBirthday());
+        if (comparisonResult < 0) {
+            return new BaseResponse<>(POST_USERS_MINIMUM_AGE);
         }
-        //이메일 정규표현
-        if(!isRegexEmail(postUserReq.getEmail())){
-            return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
+
+        // 소셜 로그인
+        if (postUserReq.getIsOAuth()){
+            String jwtToken = jwtService.getJwt();
+            Long jwtUserId = jwtService.getUserId();
+
+            postUserReq.setPassword("NONE");
+            GetUserRes userRes = userService.getActiveUserById(jwtUserId);
+
+            if (userRes.getUserState() == User.UserState.PENDING) {
+                userService.modifyUserBasicInfo(jwtUserId, postUserReq);
+                return new BaseResponse<>(new PostUserRes(jwtUserId, jwtToken));
+            } else {
+                return new BaseResponse<>(EXISTING_USER);
+            }
+
+        } else {
+            if(postUserReq.getPassword() == null){
+                return new BaseResponse<>(USERS_EMPTY_PASSWORD);
+            } else if (postUserReq.getPassword().length() < 6) {
+                return new BaseResponse<>(POST_USERS_RECEDES_MIN_LEN_PASSWORD);
+            }
+            PostUserRes postUserRes = userService.createUser(postUserReq);
+            return new BaseResponse<>(postUserRes);
         }
-        PostUserRes postUserRes = userService.createUser(postUserReq);
-        return new BaseResponse<>(postUserRes);
+
     }
 
     /**

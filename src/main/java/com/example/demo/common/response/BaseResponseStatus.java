@@ -19,15 +19,28 @@ public enum BaseResponseStatus {
      */
 
     USERS_EMPTY_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일을 입력해주세요."),
+    USERS_EMPTY_FULL_NAME(false, HttpStatus.BAD_REQUEST.value(), "Full Name을 입력해주세요."),
+    USERS_EMPTY_USER_NAME(false, HttpStatus.BAD_REQUEST.value(), "User Name을 입력해주세요."),
+    USERS_EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
+    USERS_EMPTY_MOBILE(false, HttpStatus.BAD_REQUEST.value(), "전화번호를 입력해주세요."),
+    USERS_EMPTY_BIRTHDAY(false, HttpStatus.BAD_REQUEST.value(), "생년월일을 입력해주세요."),
+
     TEST_EMPTY_COMMENT(false, HttpStatus.BAD_REQUEST.value(), "코멘트를 입력해주세요."),
     POST_USERS_INVALID_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일 형식을 확인해주세요."),
+    POST_USERS_MINIMUM_AGE(false, HttpStatus.BAD_REQUEST.value(), "만 8세 미만은 가입할 수 없습니다."),
+    POST_USERS_EXCEEDS_MAX_LEN_FULL_NAME(false, HttpStatus.BAD_REQUEST.value(), "이름은 20자를 초과할 수 없습니다."),
+    POST_USERS_RECEDES_MIN_LEN_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호는 6자리 이상이어야 합니다."),
+    POST_USERS_INVALID_USER_NAME(false, HttpStatus.BAD_REQUEST.value(), "사용자 이름에는 문자 숫자 밑줄 및 마침표만 사용할 수 있습니다."),
     POST_USERS_EXISTS_EMAIL(false,HttpStatus.BAD_REQUEST.value(),"중복된 이메일입니다."),
+    POST_USERS_EXISTS_ID(false,HttpStatus.BAD_REQUEST.value(),"사용할 수 없는 사용자 이름입니다. 다른 이름을 사용하세요."),
     POST_TEST_EXISTS_MEMO(false,HttpStatus.BAD_REQUEST.value(),"중복된 메모입니다."),
 
     RESPONSE_ERROR(false, HttpStatus.NOT_FOUND.value(), "값을 불러오는데 실패하였습니다."),
 
     DUPLICATED_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "중복된 이메일입니다."),
     INVALID_MEMO(false,HttpStatus.NOT_FOUND.value(), "존재하지 않는 메모입니다."),
+
+    EXISTING_USER(false,HttpStatus.NOT_FOUND.value(),"이미 존재하는 사용자입니다."),
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"없는 아이디거나 비밀번호가 틀렸습니다."),
     EMPTY_JWT(false, HttpStatus.UNAUTHORIZED.value(), "JWT를 입력해주세요."),
     INVALID_JWT(false, HttpStatus.UNAUTHORIZED.value(), "유효하지 않은 JWT입니다."),
