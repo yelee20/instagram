@@ -1,6 +1,8 @@
 package com.example.demo.src.user.model;
 
+import com.example.demo.src.user.entity.Terms;
 import com.example.demo.src.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.intellij.lang.annotations.RegExp;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,6 +12,7 @@ import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -41,6 +44,14 @@ public class PostUserReq {
     private String profileImageUrl;
     private Boolean isOAuth;
     private User.UserState userState = User.UserState.ACTIVE;
+    private List<Terms> terms;
+
+    @Getter
+    @Setter
+    public static class Terms {
+        public Long termsId;
+        public Boolean hasAgreed;
+    }
 
     public User toEntity() {
         return User.builder()
@@ -54,6 +65,7 @@ public class PostUserReq {
                 .profileImageUrl(this.profileImageUrl)
                 .isOAuth(this.isOAuth)
                 .isPublic(true)
+                .userState(User.UserState.ACTIVE)
                 .build();
     }
 }

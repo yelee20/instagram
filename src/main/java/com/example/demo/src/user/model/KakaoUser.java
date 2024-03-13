@@ -47,6 +47,7 @@ public class KakaoUser {
                 .profileImageUrl(this.properties.profileImageUrl)
                 .fullName(this.properties.nickName)
                 .isOAuth(true)
+                .userState(User.UserState.PENDING)
                 .build();
     }
 

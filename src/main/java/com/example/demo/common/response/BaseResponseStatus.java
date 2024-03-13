@@ -40,13 +40,21 @@ public enum BaseResponseStatus {
     DUPLICATED_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "중복된 이메일입니다."),
     INVALID_MEMO(false,HttpStatus.NOT_FOUND.value(), "존재하지 않는 메모입니다."),
 
-    EXISTING_USER(false,HttpStatus.NOT_FOUND.value(),"이미 존재하는 사용자입니다."),
+    EXISTING_USER(false,HttpStatus.BAD_REQUEST.value(),"이미 존재하는 사용자입니다."),
+    PENDING_USER(false,HttpStatus.BAD_REQUEST.value(),"회원 가입이 완료되지 않은 사용자입니다."),
+    BLOCKED_USER(false,HttpStatus.BAD_REQUEST.value(),"차단된 사용자입니다."),
+    DORMANT_USER(false,HttpStatus.BAD_REQUEST.value(),"휴면 계정입니다."),
+
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"없는 아이디거나 비밀번호가 틀렸습니다."),
     EMPTY_JWT(false, HttpStatus.UNAUTHORIZED.value(), "JWT를 입력해주세요."),
     INVALID_JWT(false, HttpStatus.UNAUTHORIZED.value(), "유효하지 않은 JWT입니다."),
     INVALID_USER_JWT(false,HttpStatus.FORBIDDEN.value(),"권한이 없는 유저의 접근입니다."),
     NOT_FIND_USER(false,HttpStatus.NOT_FOUND.value(),"일치하는 유저가 없습니다."),
+    OAUTH_USER(false, HttpStatus.BAD_REQUEST.value(), "소셜 로그인 유저입니다. 카카오 로그인 버튼을 이용하여 로그인 해주세요"),
     INVALID_OAUTH_TYPE(false, HttpStatus.BAD_REQUEST.value(), "알 수 없는 소셜 로그인 형식입니다."),
+
+    MISSING_REQUIRED_TERMS(false, HttpStatus.BAD_REQUEST.value(), "모든 필수 이용 약관에 동의해주세요."),
+    INVALID_REQUIRED_TERMS(false, HttpStatus.BAD_REQUEST.value(), "존재하지 않는 이용 약관입니다."),
 
 
 

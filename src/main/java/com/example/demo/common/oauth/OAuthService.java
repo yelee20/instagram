@@ -78,7 +78,6 @@ public class OAuthService {
                 }
             }
             case KAKAO: {
-                System.out.println("get access token");
                 ResponseEntity<String> accessTokenResponse = kakaoOauth.requestAccessToken(code);
 
                 //응답 객체가 JSON형식으로 되어 있으므로, 이를 deserialization해서 자바 객체에 담을 것이다.
@@ -102,7 +101,6 @@ public class OAuthService {
                     return getSocialOAuthRes;
                 }else { // user가 DB에 없다면, 회원가입 진행
                     // 유저 정보 저장
-                    System.out.println("create OAUTH USER");
                     PostUserRes postUserRes = userService.createOAuthUser(kakaoUser.toEntity());
                     GetSocialOAuthRes getSocialOAuthRes = new GetSocialOAuthRes(postUserRes.getJwt(), postUserRes.getId(), oAuthToken.getAccess_token(), oAuthToken.getToken_type());
                     return getSocialOAuthRes;
