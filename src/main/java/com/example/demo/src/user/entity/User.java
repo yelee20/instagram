@@ -64,20 +64,20 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private User.UserState userState = User.UserState.PENDING;
+    private User.UserState userState;
 
     public enum Role {
         ADMIN, BASIC
     }
 
     public enum UserState {
-        PENDING, ACTIVE, BLOCKED
+        PENDING, ACTIVE, BLOCKED, DORMANT
     }
 
     @Builder
     public User(Long id, String email, String mobile, String password, String fullName,
                 String userName, String gender, String profileImageUrl, String website, LocalDate birthday,
-                Boolean isPublic, Boolean isOAuth
+                UserState userState, Boolean isPublic, Boolean isOAuth
     ) {
         this.id = id;
         this.email = email;
@@ -89,6 +89,7 @@ public class User extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
         this.website = website;
         this.birthday = birthday;
+        this.userState = userState;
         this.isPublic = isPublic;
         this.isOAuth = isOAuth;
     }

@@ -2,8 +2,9 @@ package com.example.demo.src.user;
 
 
 
-import com.example.demo.common.entity.BaseEntity.State;
 import com.example.demo.common.exceptions.BaseException;
+import com.example.demo.common.response.BaseResponse;
+import com.example.demo.src.user.entity.TermsLog;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
@@ -14,12 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.example.demo.common.entity.BaseEntity.State.ACTIVE;
 import static com.example.demo.common.response.BaseResponseStatus.*;
-import static com.example.demo.src.user.entity.User.UserState.PENDING;
 
 // Service Create, Update, Delete 의 로직 처리
 @Transactional
@@ -28,40 +29,102 @@ import static com.example.demo.src.user.entity.User.UserState.PENDING;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final TermsRepository termsRepository;
+    private final TermsLogRepository termsLogRepository;
+    private final TermsService termsService;
     private final JwtService jwtService;
-
 
     //POST
     public PostUserRes createUser(PostUserReq postUserReq) {
-        //중복 체크
-        Optional<User> checkUser = userRepository.findByEmailAndState(postUserReq.getEmail(), ACTIVE);
-        if(checkUser.isPresent()){
-            throw new BaseException(POST_USERS_EXISTS_EMAIL);
+
+        if (!postUserReq.getIsOAuth()) {
+            // 중복 체크
+            Optional<User> checkUser = userRepository.findByEmailAndState(postUserReq.getEmail(), ACTIVE);
+            if(checkUser.isPresent()){
+                throw new BaseException(POST_USERS_EXISTS_EMAIL);
+            }
+
+            String encryptPwd;
+            try {
+                encryptPwd = new SHA256().encrypt(postUserReq.getPassword());
+                postUserReq.setPassword(encryptPwd);
+            } catch (Exception exception) {
+                throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
+            }
         }
 
-        String encryptPwd;
-        try {
-            encryptPwd = new SHA256().encrypt(postUserReq.getPassword());
-            postUserReq.setPassword(encryptPwd);
-        } catch (Exception exception) {
-            throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
-        }
+        checkIfRequiredTermsExists(postUserReq);
 
-        User saveUser = userRepository.save(postUserReq.toEntity());
-        String jwtToken = jwtService.createJwt(saveUser.getId());
-        return new PostUserRes(saveUser.getId(), jwtToken);
+        postUserReq.setUserState(User.UserState.ACTIVE);
+
+        User savedUser;
+        if (postUserReq.getIsOAuth()) {
+
+            Long jwtUserId = jwtService.getUserId();
+            postUserReq.setPassword("NONE");
+            modifyUserBasicInfo(jwtUserId, postUserReq);
+
+            savedUser = userRepository.findByIdAndState(jwtUserId, ACTIVE)
+                    .orElseThrow(() -> new BaseException(NOT_FIND_USER));
+
+        } else {
+            savedUser = userRepository.save(postUserReq.toEntity());
+        }
+        List<TermsLog> termsLogs = convertToTermsLogs(savedUser, postUserReq.getTerms());
+
+        termsLogRepository.saveAll(termsLogs);
+        String jwtToken = jwtService.createJwt(savedUser.getId());
+        return new PostUserRes(savedUser.getId(), jwtToken);
 
     }
 
-    public PostUserRes createOAuthUser(User user) {
+    private void checkIfRequiredTermsExists(PostUserReq postUserReq) {
 
-        // User 추가 정보 저장
+        // 필수 이용 약관 동의 여부 확인
+        List<GetTermsRes> requiredTermsList = termsService.getRequiredTerms();
+        List<PostUserReq.Terms> submittedTermsList = postUserReq.getTerms();
+
+        for (GetTermsRes requiredTerm : requiredTermsList) {
+            boolean found = false;
+
+            for (PostUserReq.Terms submittedTerm : submittedTermsList) {
+                if (Objects.equals(requiredTerm.getId(), submittedTerm.getTermsId()) &&
+                        submittedTerm.getHasAgreed()) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                // Handle the case where a required term is missing or not agreed to
+                throw new BaseException(MISSING_REQUIRED_TERMS);
+            }
+        }
+
+        for (PostUserReq.Terms submittedTerm : submittedTermsList) {
+            if (!termsService.checkTermsById(submittedTerm.getTermsId())) {
+                throw new BaseException(INVALID_REQUIRED_TERMS);
+            }
+        }
+    }
+
+    private List<TermsLog> convertToTermsLogs(User user, List<PostUserReq.Terms> terms) {
+        return terms.stream()
+                .map(term -> {
+                    TermsLog termsLog = TermsLog.create();
+                    termsLog.setUser(user);
+                    termsLog.setTerms(termsRepository.findByIdAndState(term.getTermsId(), ACTIVE).orElse(null));
+                    termsLog.setHasAgreed(term.getHasAgreed());
+                    return termsLog;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public PostUserRes createOAuthUser(User user) {
         User saveUser = userRepository.save(user);
 
         // JWT 발급
         String jwtToken = jwtService.createJwt(saveUser.getId());
         return new PostUserRes(saveUser.getId(), jwtToken);
-
     }
 
     public void modifyUserName(Long userId, PatchUserReq patchUserReq) {
@@ -128,8 +191,26 @@ public class UserService {
     }
 
     public PostLoginRes logIn(PostLoginReq postLoginReq) {
+
         User user = userRepository.findByEmailAndState(postLoginReq.getEmail(), ACTIVE)
                 .orElseThrow(() -> new BaseException(NOT_FIND_USER));
+
+        if (user.getIsOAuth()) {
+            throw new BaseException(OAUTH_USER);
+        }
+
+        switch (user.getUserState()) {
+            case PENDING:
+                throw new BaseException(PENDING_USER);
+            case ACTIVE:
+                break;
+            case BLOCKED:
+                throw new BaseException(BLOCKED_USER);
+            case DORMANT:
+                throw new BaseException(DORMANT_USER);
+            default:
+                throw new IllegalStateException("Unexpected user state: " + user.getUserState());
+        }
 
         String encryptPwd;
         try {

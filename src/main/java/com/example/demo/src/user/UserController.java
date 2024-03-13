@@ -60,19 +60,22 @@ public class UserController {
 
         // 소셜 로그인
         if (postUserReq.getIsOAuth()){
-            String jwtToken = jwtService.getJwt();
             Long jwtUserId = jwtService.getUserId();
-
-            postUserReq.setPassword("NONE");
             GetUserRes userRes = userService.getActiveUserById(jwtUserId);
 
-            if (userRes.getUserState() == User.UserState.PENDING) {
-                userService.modifyUserBasicInfo(jwtUserId, postUserReq);
-                return new BaseResponse<>(new PostUserRes(jwtUserId, jwtToken));
-            } else {
-                return new BaseResponse<>(EXISTING_USER);
+            switch (userRes.getUserState()) {
+                case PENDING:
+                    PostUserRes postUserRes = userService.createUser(postUserReq);
+                    return new BaseResponse<>(postUserRes);
+                case ACTIVE:
+                    return new BaseResponse<>(EXISTING_USER);
+                case BLOCKED:
+                    return new BaseResponse<>(BLOCKED_USER);
+                case DORMANT:
+                    return new BaseResponse<>(DORMANT_USER);
+                default:
+                    throw new IllegalStateException("Unexpected user state: " + userRes.getUserState());
             }
-
         } else {
             if(postUserReq.getPassword() == null){
                 return new BaseResponse<>(USERS_EMPTY_PASSWORD);
@@ -118,8 +121,6 @@ public class UserController {
         return new BaseResponse<>(getUserRes);
     }
 
-
-
     /**
      * 유저정보변경 API
      * [PATCH] /app/users/:userId
@@ -161,10 +162,16 @@ public class UserController {
      */
     @ResponseBody
     @PostMapping("/logIn")
+    // 유저의 계정 상태는 회원가입/탈퇴 뿐만 아니라 휴면계정, 차단계정 등을 관리 할 수 있어야해요
     public BaseResponse<PostLoginRes> logIn(@RequestBody PostLoginReq postLoginReq){
-        // TODO: 로그인 값들에 대한 형식적인 validatin 처리해주셔야합니다!
-        // TODO: 유저의 status ex) 비활성화된 유저, 탈퇴한 유저 등을 관리해주고 있다면 해당 부분에 대한 validation 처리도 해주셔야합니다.
+        if(postLoginReq.getPassword() == null){
+            return new BaseResponse<>(USERS_EMPTY_PASSWORD);
+        } else if (postLoginReq.getPassword().length() < 6) {
+            return new BaseResponse<>(POST_USERS_RECEDES_MIN_LEN_PASSWORD);
+        }
+
         PostLoginRes postLoginRes = userService.logIn(postLoginReq);
+
         return new BaseResponse<>(postLoginRes);
     }
 
