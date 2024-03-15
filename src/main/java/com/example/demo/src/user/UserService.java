@@ -238,4 +238,9 @@ public class UserService {
         User user = userRepository.findByEmailAndState(email, ACTIVE).orElseThrow(() -> new BaseException(NOT_FIND_USER));
         return new GetUserRes(user);
     }
+
+    public User getUserByJwt() {
+        Long userId = jwtService.getUserId();
+        return userRepository.findByIdAndState(userId, ACTIVE).orElseThrow(() -> new BaseException(NOT_FIND_USER));
+    }
 }

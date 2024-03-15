@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ import static com.example.demo.common.response.BaseResponseStatus.*;
 public class TestController {
 
     private final TestService testService;
+    private final S3UploadService s3UploadService;
 
 
     /**
@@ -45,7 +47,7 @@ public class TestController {
      * @return BaseResponse<String>
      */
     // Body
-    @Operation(summary = "메모 생성", description = "문자열을 받아 메모를 생성합니다.")
+    @Operation(summary = "메모 생성", description = "문자열과 사진/동영상 파일을 받아 메모를 생성합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "POST_TEST_EXISTS_MEMO"),
@@ -53,9 +55,15 @@ public class TestController {
     })
     @ResponseBody
     @PostMapping("/memos")
-    public BaseResponse<String> createMemo(@Validated @RequestBody MemoDto memoDto) {
-        testService.createMemo(memoDto);
-        return new BaseResponse<>("생성 성공!!");
+    public BaseResponse<String> createMemo(@Validated @ModelAttribute MemoDto memoDto,
+                                           @Validated @RequestPart List<MultipartFile> files) {
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) {
+                throw new BaseException(EMPTY_FILE_EXCEPTION);
+            }
+        }
+        testService.createMemo(memoDto, files);
+        return new BaseResponse<>("게시글 생성 성공");
     }
 
 
@@ -103,5 +111,11 @@ public class TestController {
     public BaseResponse<String> createComment(@RequestBody PostCommentDto postCommentDto) {
         testService.createComment(postCommentDto);
         return new BaseResponse<>("성공");
+    }
+
+    @PostMapping("/s3/upload")
+    public BaseResponse<?> uploadToS3(@RequestPart(value = "image", required = false) MultipartFile image){
+        String profileImage = s3UploadService.upload(image);
+        return new BaseResponse<>(profileImage);
     }
 }

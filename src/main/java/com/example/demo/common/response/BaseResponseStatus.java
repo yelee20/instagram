@@ -24,6 +24,8 @@ public enum BaseResponseStatus {
     USERS_EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
     USERS_EMPTY_MOBILE(false, HttpStatus.BAD_REQUEST.value(), "전화번호를 입력해주세요."),
     USERS_EMPTY_BIRTHDAY(false, HttpStatus.BAD_REQUEST.value(), "생년월일을 입력해주세요."),
+    EMPTY_FILE_EXCEPTION(false, HttpStatus.BAD_REQUEST.value(), "파일을 첨부해주세요."),
+    NO_FILE_EXTENTION(false, HttpStatus.BAD_REQUEST.value(), "파일 확장자를 입력해주세요."),
 
     TEST_EMPTY_COMMENT(false, HttpStatus.BAD_REQUEST.value(), "코멘트를 입력해주세요."),
     POST_USERS_INVALID_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일 형식을 확인해주세요."),
@@ -56,6 +58,8 @@ public enum BaseResponseStatus {
     MISSING_REQUIRED_TERMS(false, HttpStatus.BAD_REQUEST.value(), "모든 필수 이용 약관에 동의해주세요."),
     INVALID_REQUIRED_TERMS(false, HttpStatus.BAD_REQUEST.value(), "존재하지 않는 이용 약관입니다."),
 
+    INVALID_FILE_EXTENTION(false, HttpStatus.BAD_REQUEST.value(), "유효하지 않은 파일 형식입니다."),
+
 
 
     /**
@@ -66,10 +70,12 @@ public enum BaseResponseStatus {
     PASSWORD_ENCRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 암호화에 실패하였습니다."),
     PASSWORD_DECRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 복호화에 실패하였습니다."),
 
-
     MODIFY_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저네임 수정 실패"),
     DELETE_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저 삭제 실패"),
     MODIFY_FAIL_MEMO(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"메모 수정 실패"),
+    IO_EXCEPTION_ON_IMAGE_UPLOAD(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"이미지 업로드 실패"),
+    IO_EXCEPTION_ON_IMAGE_DELETE(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"이미지 삭제 실패"),
+    PUT_OBJECT_EXCEPTION(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"이미지 수정 실패"),
 
     UNEXPECTED_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "예상치 못한 에러가 발생했습니다.");
 

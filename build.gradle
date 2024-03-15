@@ -56,7 +56,9 @@ dependencies {
     // Swagger
     implementation ('org.springdoc:springdoc-openapi-ui:1.6.14')
 
-
+    // AWS
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+    implementation "com.amazonaws:aws-java-sdk-s3:1.12.395"
 }
 
 test {

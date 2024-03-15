@@ -11,39 +11,28 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
 @Getter
-@Entity // 필수, Class 를 Database Table화 해주는 것이다
-@Table(name = "COMMENT") // Table 이름을 명시해주지 않으면 class 이름을 Table 이름으로 대체한다.
-public class Comment extends BaseEntity {
+@Entity
+@Table(name = "COMMENT_LIKE")
+public class CommentLike extends BaseEntity {
 
-    @Id // PK를 의미하는 어노테이션
+    @Id
     @Column(name = "id", nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String comment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "memoId")
-    private Memo memo;
-    public void setMemo(Memo memo) {
-        this.memo = memo;
-    }
+    @JoinColumn(name = "commentId")
+    private Comment comment;
 
     @Builder
-    public Comment(Long id, User user, String comment, Memo memo) {
+    public CommentLike(Long id, User user, Comment comment) {
         this.id = id;
         this.user = user;
         this.comment = comment;
-        this.memo = memo;
-    }
-
-    public void makeComment(PostCommentDto postCommentDto, Memo memo) {
-        this.memo = memo;
-        this.comment = postCommentDto.getComment();
     }
 
 }

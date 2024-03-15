@@ -3,9 +3,12 @@ package com.example.demo.src.test.entity;
 
 import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.src.test.model.MemoDto;
+import com.example.demo.src.user.entity.User;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +24,22 @@ public class Memo extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userId")
+    private User user;
+
+    @Column(name = "memo", nullable = false)
+    @Size(max = 2200)
     private String memo;
+
+    @Column(nullable = false)
+    private Boolean isCommentEnabled;
+
+    @Column(nullable = false)
+    private Boolean isLikeCountVisible;
+
+    @Column(name = "location", nullable = false)
+    private String location;
 
     // 양방향 매핑(선택 사항)
     // @BatchSize(size = 5) // BatchSize 설정 예제
@@ -42,11 +60,14 @@ public class Memo extends BaseEntity {
         commentList.add(comment);
     }
 
-
     @Builder
-    public Memo(Long id, String memo) {
+    public Memo(Long id, User user, String memo, Boolean isCommentEnabled, Boolean isLikeCountVisible, String location) {
         this.id = id;
+        this.user = user;
         this.memo = memo;
+        this.isCommentEnabled = isCommentEnabled;
+        this.isLikeCountVisible = isLikeCountVisible;
+        this.location = location;
     }
 
 
