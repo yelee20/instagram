@@ -1,5 +1,6 @@
 package com.example.demo.src.test.model;
 
+import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.src.test.entity.Memo;
 import com.example.demo.src.test.entity.MemoImage;
 import com.example.demo.src.user.entity.User;
@@ -24,6 +25,7 @@ public class MemoImageDto {
     private String altText;
     private MemoImage.ImageType imageType;
     private Long length;
+    private BaseEntity.State state;
 
     public MemoImage toEntity(MultipartFile file, Memo memo) {
         return MemoImage.builder()

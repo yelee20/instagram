@@ -25,6 +25,7 @@ public enum BaseResponseStatus {
     USERS_EMPTY_MOBILE(false, HttpStatus.BAD_REQUEST.value(), "전화번호를 입력해주세요."),
     USERS_EMPTY_BIRTHDAY(false, HttpStatus.BAD_REQUEST.value(), "생년월일을 입력해주세요."),
     EMPTY_FILE_EXCEPTION(false, HttpStatus.BAD_REQUEST.value(), "파일을 첨부해주세요."),
+    EMPTY_IMAGE_ID_EXCEPTION(false,HttpStatus.NOT_FOUND.value(),"이미지 아이디를 입력해주세요."),
     NO_FILE_EXTENTION(false, HttpStatus.BAD_REQUEST.value(), "파일 확장자를 입력해주세요."),
 
     TEST_EMPTY_COMMENT(false, HttpStatus.BAD_REQUEST.value(), "코멘트를 입력해주세요."),
@@ -52,6 +53,8 @@ public enum BaseResponseStatus {
     INVALID_JWT(false, HttpStatus.UNAUTHORIZED.value(), "유효하지 않은 JWT입니다."),
     INVALID_USER_JWT(false,HttpStatus.FORBIDDEN.value(),"권한이 없는 유저의 접근입니다."),
     NOT_FIND_USER(false,HttpStatus.NOT_FOUND.value(),"일치하는 유저가 없습니다."),
+    IMAGE_NOT_FOUND(false,HttpStatus.NOT_FOUND.value(),"일치하는 이미지가 없습니다."),
+    MEMO_NOT_FOUND(false,HttpStatus.NOT_FOUND.value(),"존재하는 게시글이 없습니다."),
     OAUTH_USER(false, HttpStatus.BAD_REQUEST.value(), "소셜 로그인 유저입니다. 카카오 로그인 버튼을 이용하여 로그인 해주세요"),
     INVALID_OAUTH_TYPE(false, HttpStatus.BAD_REQUEST.value(), "알 수 없는 소셜 로그인 형식입니다."),
 
@@ -59,6 +62,11 @@ public enum BaseResponseStatus {
     INVALID_REQUIRED_TERMS(false, HttpStatus.BAD_REQUEST.value(), "존재하지 않는 이용 약관입니다."),
 
     INVALID_FILE_EXTENTION(false, HttpStatus.BAD_REQUEST.value(), "유효하지 않은 파일 형식입니다."),
+
+    /**
+     * 401 :  권한 없음 오류
+     */
+    NOT_ENOUGH_PERMISSION_EDIT_MEMO(false, HttpStatus.UNAUTHORIZED.value(), "게시글 수정 권한이 없습니다."),
 
 
 
@@ -70,10 +78,13 @@ public enum BaseResponseStatus {
     PASSWORD_ENCRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 암호화에 실패하였습니다."),
     PASSWORD_DECRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 복호화에 실패하였습니다."),
 
+    NO_SUCH_FIELD(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "해당되는 컬럼이 없습니다."),
+
     MODIFY_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저네임 수정 실패"),
     DELETE_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저 삭제 실패"),
     MODIFY_FAIL_MEMO(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"메모 수정 실패"),
     IO_EXCEPTION_ON_IMAGE_UPLOAD(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"이미지 업로드 실패"),
+    IO_EXCEPTION_ON_VIDEO_UPLOAD(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"동영상 업로드 실패"),
     IO_EXCEPTION_ON_IMAGE_DELETE(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"이미지 삭제 실패"),
     PUT_OBJECT_EXCEPTION(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"이미지 수정 실패"),
 

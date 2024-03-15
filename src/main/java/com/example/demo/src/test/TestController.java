@@ -2,9 +2,7 @@ package com.example.demo.src.test;
 
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponse;
-import com.example.demo.src.test.model.PostCommentDto;
-import com.example.demo.src.test.model.GetMemoDto;
-import com.example.demo.src.test.model.MemoDto;
+import com.example.demo.src.test.model.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -90,7 +88,8 @@ public class TestController {
     @Operation(summary = "메모 정보 변경", description = "입력받은 메모 id의 메모를 받아온 문자열 값으로 변경합니다.")
     @ResponseBody
     @PatchMapping("/memos/{memoId}")
-    public BaseResponse<String> modifyMemo(@PathVariable("memoId") Long memoId, @Validated @RequestBody MemoDto memoDto) {
+    public BaseResponse<String> modifyMemo(@PathVariable("memoId") Long memoId,
+                                           @Validated @RequestBody PatchMemoDto memoDto) {
         testService.modifyMemo(memoId, memoDto);
 
         String result = "수정 성공!!";

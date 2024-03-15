@@ -3,8 +3,8 @@ package com.example.demo.src.test.entity;
 
 import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.src.test.model.MemoDto;
+import com.example.demo.src.test.model.PatchMemoDto;
 import com.example.demo.src.user.entity.User;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.*;
 
 import javax.persistence.*;
@@ -50,8 +50,9 @@ public class Memo extends BaseEntity {
         this.memo = memoDto.getMemo();
     }
 
-    public void updateMemo(MemoDto memoDto) {
+    public void updateMemo(PatchMemoDto memoDto) {
         this.memo = memoDto.getMemo();
+        this.location = memoDto.getLocation();
     }
 
     // 연관관계 편의 메서드(선택 사항)

@@ -40,58 +40,92 @@ public class S3UploadService {
     @Value("${spring.servlet.multipart.max-file-size}")
     private String maxSizeString;
 
-    public String upload(MultipartFile image) {
-        if(image.isEmpty() || Objects.isNull(image.getOriginalFilename())){
+    private boolean isImage(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        if (filename != null) {
+            String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+            List<String> allowedImageExtensions = Arrays.asList("jpg", "jpeg", "png", "gif");
+            return allowedImageExtensions.contains(extension);
+        }
+        return false;
+    }
+
+    private boolean isVideo(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        if (filename != null) {
+            String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+            List<String> allowedVideoExtensions = Arrays.asList("mov", "mp4", "avi");
+            return allowedVideoExtensions.contains(extension);
+        }
+        return false;
+    }
+
+    public String upload(MultipartFile file) {
+        if(file.isEmpty() || Objects.isNull(file.getOriginalFilename())){
             throw new BaseException(EMPTY_FILE_EXCEPTION);
         }
-        return this.uploadImage(image);
+
+        if (isImage(file)) {
+            return this.uploadImage(file);
+        } else if (isVideo(file)) {
+            return this.uploadVideo(file);
+        } else {
+            throw new BaseException(INVALID_FILE_EXTENTION);
+        }
     }
 
     private String uploadImage(MultipartFile image) {
-        this.validateImageFileExtention(image.getOriginalFilename());
+        validateFileExtension(image.getOriginalFilename(), Arrays.asList("jpg", "jpeg", "png", "gif"));
         try {
-            return this.uploadImageToS3(image);
+            return uploadFileToS3(image, "image");
         } catch (IOException e) {
             throw new BaseException(IO_EXCEPTION_ON_IMAGE_UPLOAD);
         }
     }
 
-    private void validateImageFileExtention(String filename) {
-        int lastDotIndex = filename.lastIndexOf(".");
-        if (lastDotIndex == -1) {
-            throw new BaseException(NO_FILE_EXTENTION);
-        }
-
-        String extention = filename.substring(lastDotIndex + 1).toLowerCase();
-        List<String> allowedExtentionList = Arrays.asList("jpg", "jpeg", "png", "gif");
-
-        if (!allowedExtentionList.contains(extention)) {
-            throw new BaseException(INVALID_FILE_EXTENTION);
+    private String uploadVideo(MultipartFile video) {
+        validateFileExtension(video.getOriginalFilename(), Arrays.asList("mov", "mp4", "avi"));
+        try {
+            return uploadFileToS3(video, "video");
+        } catch (IOException e) {
+            throw new BaseException(IO_EXCEPTION_ON_VIDEO_UPLOAD);
         }
     }
 
-    private String uploadImageToS3(MultipartFile image) throws IOException {
-        String originalFilename = image.getOriginalFilename(); //원본 파일 명
-        String extention = originalFilename.substring(originalFilename.lastIndexOf(".")); //확장자 명
+    private void validateFileExtension(String filename, List<String> allowedExtensions) {
+        int lastDotIndex = filename.lastIndexOf(".");
+        if (lastDotIndex == -1) {
+            throw new BaseException(EMPTY_FILE_EXCEPTION);
+        }
 
-        String s3FileName = UUID.randomUUID().toString().substring(0, 10) + originalFilename; //변경된 파일 명
+        String extension = filename.substring(lastDotIndex + 1).toLowerCase();
 
-        InputStream is = image.getInputStream();
+        if (!allowedExtensions.contains(extension)) {
+            throw new BaseException(INVALID_FILE_EXTENTION);
+        }
+    }
+    private String uploadFileToS3(MultipartFile file, String contentType) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+
+        String s3FileName = UUID.randomUUID().toString().substring(0, 10) + originalFilename;
+
+        InputStream is = file.getInputStream();
         byte[] bytes = IOUtils.toByteArray(is);
 
         ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentType("image/" + extention);
+        metadata.setContentType(contentType + "/" + extension);
         metadata.setContentLength(bytes.length);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
 
-        try{
+        try {
             PutObjectRequest putObjectRequest =
                     new PutObjectRequest(bucketName, s3FileName, byteArrayInputStream, metadata)
                             .withCannedAcl(CannedAccessControlList.PublicRead);
-            amazonS3.putObject(putObjectRequest); // put image to S3
-        }catch (Exception e){
+            amazonS3.putObject(putObjectRequest);
+        } catch (Exception e) {
             throw new BaseException(PUT_OBJECT_EXCEPTION);
-        }finally {
+        } finally {
             byteArrayInputStream.close();
             is.close();
         }

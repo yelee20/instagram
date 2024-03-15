@@ -3,6 +3,7 @@ package com.example.demo.src.test.entity;
 
 import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.src.test.model.MemoDto;
+import com.example.demo.src.test.model.MemoImageDto;
 import lombok.*;
 
 import javax.persistence.*;
@@ -37,6 +38,14 @@ public class MemoImage extends BaseEntity {
 
     public enum ImageType {
         VIDEO, PHOTO
+    }
+
+    public void updateMemoImage(MemoImageDto memoImageDto) {
+        this.altText = memoImageDto.getAltText();
+
+        if (memoImageDto.getState() != null) {
+            this.state = memoImageDto.getState();
+        }
     }
 
     @Builder

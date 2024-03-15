@@ -5,11 +5,8 @@ import com.example.demo.src.test.entity.Memo;
 import com.example.demo.src.test.entity.MemoImage;
 import com.example.demo.src.test.entity.MemoLog;
 import com.example.demo.src.test.model.*;
-import com.example.demo.src.user.UserRepository;
 import com.example.demo.src.user.UserService;
-import com.example.demo.src.user.entity.TermsLog;
 import com.example.demo.src.user.entity.User;
-import com.example.demo.src.user.model.PostUserReq;
 import com.example.demo.utils.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -20,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.example.demo.common.entity.BaseEntity.State.ACTIVE;
 import static com.example.demo.common.response.BaseResponseStatus.*;
@@ -92,23 +88,39 @@ public class TestService {
 
     }
 
-    public void modifyMemo(Long memoId, MemoDto memoDto) throws BaseException {
-        //중복
-        if(checkMemo(memoDto.getMemo()) >= 1){
-            throw new BaseException(POST_TEST_EXISTS_MEMO);
-        }
+    public void modifyMemo(Long memoId, PatchMemoDto memoDto) throws BaseException {
+        User user = userService.getUserByJwt();
         Memo memo = memoRepository.findByIdAndState(memoId, ACTIVE)
-                .orElseThrow(() -> new BaseException(MODIFY_FAIL_MEMO));
+                .orElseThrow(() -> new BaseException(MEMO_NOT_FOUND));
 
+        if (memo.getUser() != user) {
+            throw new BaseException(NOT_ENOUGH_PERMISSION_EDIT_MEMO);
+        }
+
+        for (MemoImageDto image : memoDto.getImages()){
+            if (image.getId() == null) {
+                throw new BaseException(EMPTY_IMAGE_ID_EXCEPTION);
+            }
+            MemoImage memoImage = memoImageRepository.findByIdAndState(image.getId(), ACTIVE)
+                    .orElseThrow(() -> new BaseException(IMAGE_NOT_FOUND));
+            if (memoImage.getMemo() != memo) {
+                throw new BaseException(NOT_ENOUGH_PERMISSION_EDIT_MEMO);
+            }
+
+            System.out.println(image.getState());
+            memoImage.updateMemoImage(image);
+        }
+        // TODO:: tag
+        // alt text
         memo.updateMemo(memoDto);
 
     }
 
     public void createComment(PostCommentDto postCommentDto){
+        User user = userService.getUserByJwt();
         Memo memo = memoRepository.findByIdAndState(postCommentDto.getMemoId(), ACTIVE).
                 orElseThrow(() -> new BaseException(INVALID_MEMO));
 
-        User user = userService.getUserByJwt();
         commentRepository.save(postCommentDto.toEntity(memo, user));
     }
 }
