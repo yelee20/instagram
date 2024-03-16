@@ -64,6 +64,19 @@ public class TestController {
         return new BaseResponse<>("게시글 생성 성공");
     }
 
+    /**
+     * 메모 좋아요/좋아요 취소 API
+     * [PATCH] /app/like-memo/{memoId}
+     * @return BaseResponse<String>
+     */
+    @Operation(summary = "메모 좋아요/좋아요 취소", description = "입력받은 메모 id의 메모를 받아 좋아요/좋아요 취소 동작을 실행합니다.")
+    @ResponseBody
+    @PatchMapping("/like-memo/{memoId}")
+    public BaseResponse<String> updateMemoLikeStatus(@Validated @PathVariable("memoId") Long memoId) {
+        String result = testService.updateMemoLikeStatus(memoId);
+        return new BaseResponse<>(result);
+    }
+
 
     /**
      * 메모 리스트 조회 API
@@ -144,6 +157,20 @@ public class TestController {
         testService.createComment(postCommentDto);
         return new BaseResponse<>("성공");
     }
+
+    /**
+     * 코멘트 좋아요/좋아요 취소 API
+     * [PATCH] /app/like-memo/{commentId}
+     * @return BaseResponse<String>
+     */
+    @Operation(summary = "코멘트 좋아요/좋아요 취소", description = "입력받은 코멘트 id를 받아 좋아요/좋아요 취소 동작을 실행합니다.")
+    @ResponseBody
+    @PatchMapping("/like-comment/{commentId}")
+    public BaseResponse<String> updateCommentLikeStatus(@Validated @PathVariable("commentId") Long commentId) {
+        String result = testService.updateCommentLikeStatus(commentId);
+        return new BaseResponse<>(result);
+    }
+
 
     /**
      * 코멘트 삭제 API

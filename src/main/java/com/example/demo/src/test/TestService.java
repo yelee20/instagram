@@ -1,12 +1,11 @@
 package com.example.demo.src.test;
 
+import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.common.exceptions.BaseException;
-import com.example.demo.src.test.entity.Comment;
-import com.example.demo.src.test.entity.Memo;
-import com.example.demo.src.test.entity.MemoImage;
-import com.example.demo.src.test.entity.MemoLog;
+import com.example.demo.src.test.entity.*;
 import com.example.demo.src.test.model.*;
 import com.example.demo.src.user.UserService;
+import com.example.demo.src.user.entity.TermsLog;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.utils.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.demo.common.entity.BaseEntity.State.ACTIVE;
 import static com.example.demo.common.response.BaseResponseStatus.*;
@@ -28,10 +28,11 @@ import static com.example.demo.common.response.BaseResponseStatus.*;
 public class TestService {
 
     private final MemoRepository memoRepository;
+    private final MemoLikeRepository memoLikeRepository;
     private final MemoLogRepository memoLogRepository;
     private final MemoImageRepository memoImageRepository;
     private final CommentRepository commentRepository;
-    private final JwtService jwtService;
+    private final CommentLikeRepository commentLikeRepository;
     private final UserService userService;
     private final S3UploadService s3UploadService;
 
@@ -85,6 +86,33 @@ public class TestService {
         List<GetMemoDto> getMemoDtoList = getMemoDtoSlice.getContent();
 
         return getMemoDtoList;
+
+    }
+
+    public String updateMemoLikeStatus(Long memoId){
+        User user = userService.getUserByJwt();
+        Memo memo = memoRepository.findByIdAndState(memoId, ACTIVE)
+                .orElseThrow(() -> new BaseException(MEMO_NOT_FOUND));
+        Optional<MemoLike> memoLikeOptional = memoLikeRepository.findByMemoIdAndUserId(memoId, user.getId());
+
+        if (memoLikeOptional.isPresent()) {
+            MemoLike memoLike = memoLikeOptional.get();
+            BaseEntity.State state = memoLike.getState();
+            if (state == ACTIVE){
+                memoLike.unlikeMemo();
+                return "게시글 좋아요 취소 성공";
+            } else {
+                memoLike.likeMemo();
+                return "게시글 좋아요 성공";
+            }
+
+        } else {
+            MemoLike tmpMemoLike = MemoLike.create();
+            tmpMemoLike.setUser(user);
+            tmpMemoLike.setMemo(memo);
+            memoLikeRepository.save(tmpMemoLike);
+            return "게시글 좋아요 성공";
+        }
 
     }
 
@@ -170,7 +198,33 @@ public class TestService {
         }
     }
 
-    @Transactional
+    public String updateCommentLikeStatus(Long commentId){
+        User user = userService.getUserByJwt();
+        Comment comment = commentRepository.findByIdAndState(commentId, ACTIVE)
+                .orElseThrow(() -> new BaseException(COMMENT_NOT_FOUND));
+
+        Optional<CommentLike> commentLikeOptional = commentLikeRepository.findByCommentIdAndUserId(commentId, user.getId());
+
+        if (commentLikeOptional.isPresent()) {
+            CommentLike commentLike = commentLikeOptional.get();
+            BaseEntity.State state = commentLike.getState();
+            if (state == ACTIVE){
+                commentLike.unlikeComment();
+                return "댓글 좋아요 취소 성공";
+            } else {
+                commentLike.likeComment();
+                return "댓글 좋아요 성공";
+            }
+
+        } else {
+            CommentLike tmpCommentLike = CommentLike.create();
+            tmpCommentLike.setUser(user);
+            tmpCommentLike.setComment(comment);
+            commentLikeRepository.save(tmpCommentLike);
+            return "댓글 좋아요 성공";
+        }
+    }
+
     public void deleteComment(Long commentId) throws BaseException {
         User user = userService.getUserByJwt();
         Comment comment = commentRepository.findByIdAndState(commentId, ACTIVE)

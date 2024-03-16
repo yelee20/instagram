@@ -4,6 +4,7 @@ package com.example.demo.src.test.entity;
 import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.src.test.model.MemoDto;
 import com.example.demo.src.test.model.PostCommentDto;
+import com.example.demo.src.user.entity.TermsLog;
 import com.example.demo.src.user.entity.User;
 import lombok.*;
 
@@ -12,6 +13,7 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
 @Getter
+@Setter
 @Entity
 @Table(name = "MEMO_LIKE")
 public class MemoLike extends BaseEntity {
@@ -34,6 +36,17 @@ public class MemoLike extends BaseEntity {
         this.id = id;
         this.user = user;
         this.memo = memo;
+    }
+
+    public static MemoLike create() {
+        return new MemoLike();
+    }
+
+    public void likeMemo() {
+        this.state = State.ACTIVE;
+    }
+    public void unlikeMemo() {
+        this.state = State.INACTIVE;
     }
 
 }

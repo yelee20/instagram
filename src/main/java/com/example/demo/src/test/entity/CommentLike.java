@@ -11,6 +11,7 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
 @Getter
+@Setter
 @Entity
 @Table(name = "COMMENT_LIKE")
 public class CommentLike extends BaseEntity {
@@ -33,6 +34,17 @@ public class CommentLike extends BaseEntity {
         this.id = id;
         this.user = user;
         this.comment = comment;
+    }
+
+    public static CommentLike create() {
+        return new CommentLike();
+    }
+
+    public void likeComment() {
+        this.state = State.ACTIVE;
+    }
+    public void unlikeComment() {
+        this.state = State.INACTIVE;
     }
 
 }
