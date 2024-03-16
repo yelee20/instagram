@@ -29,7 +29,7 @@ public class Memo extends BaseEntity {
     private User user;
 
     @Column(name = "memo", nullable = false)
-    @Size(max = 2200)
+    @Size(max = 2200, message = "게시글 내용은 100자를 초과할 수 없습니다.")
     private String memo;
 
     @Column(nullable = false)
@@ -38,7 +38,8 @@ public class Memo extends BaseEntity {
     @Column(nullable = false)
     private Boolean isLikeCountVisible;
 
-    @Column(name = "location", nullable = false)
+    @Column(name = "location")
+    @Size(max = 100, message = "위치는 100자를 초과할 수 없습니다.")
     private String location;
 
     // 양방향 매핑(선택 사항)
@@ -50,9 +51,21 @@ public class Memo extends BaseEntity {
         this.memo = memoDto.getMemo();
     }
 
+    public void updateMemoAdvancedSetting(PatchMemoDto memoDto) {
+        if (memoDto.getIsCommentEnabled() != null) {
+            this.isCommentEnabled = memoDto.getIsCommentEnabled();
+        }
+        if (memoDto.getIsLikeCountVisible() != null) {
+            this.isLikeCountVisible = memoDto.getIsLikeCountVisible();
+        }
+    }
     public void updateMemo(PatchMemoDto memoDto) {
         this.memo = memoDto.getMemo();
         this.location = memoDto.getLocation();
+    }
+
+    public void deleteMemo() {
+        this.state = State.INACTIVE;
     }
 
     // 연관관계 편의 메서드(선택 사항)

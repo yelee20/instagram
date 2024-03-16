@@ -2,7 +2,6 @@ package com.example.demo.src.test.entity;
 
 
 import com.example.demo.common.entity.BaseEntity;
-import com.example.demo.src.test.model.MemoDto;
 import com.example.demo.src.test.model.MemoImageDto;
 import lombok.*;
 
@@ -46,6 +45,10 @@ public class MemoImage extends BaseEntity {
         if (memoImageDto.getState() != null) {
             this.state = memoImageDto.getState();
         }
+    }
+
+    public void deleteMemoImage() {
+        this.state = State.INACTIVE;
     }
 
     @Builder

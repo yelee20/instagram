@@ -18,6 +18,7 @@ public enum BaseResponseStatus {
      * 400 : Request, Response 오류
      */
 
+    INVALID_REQUEST_FORMAT(false, HttpStatus.BAD_REQUEST.value(), "잘못된 요청 형식입니다."),
     USERS_EMPTY_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일을 입력해주세요."),
     USERS_EMPTY_FULL_NAME(false, HttpStatus.BAD_REQUEST.value(), "Full Name을 입력해주세요."),
     USERS_EMPTY_USER_NAME(false, HttpStatus.BAD_REQUEST.value(), "User Name을 입력해주세요."),
@@ -28,6 +29,7 @@ public enum BaseResponseStatus {
     EMPTY_IMAGE_ID_EXCEPTION(false,HttpStatus.NOT_FOUND.value(),"이미지 아이디를 입력해주세요."),
     NO_FILE_EXTENTION(false, HttpStatus.BAD_REQUEST.value(), "파일 확장자를 입력해주세요."),
 
+    EMPTY_MEMO(false, HttpStatus.BAD_REQUEST.value(), "게시글 내용을 입력해주세요."),
     TEST_EMPTY_COMMENT(false, HttpStatus.BAD_REQUEST.value(), "코멘트를 입력해주세요."),
     POST_USERS_INVALID_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일 형식을 확인해주세요."),
     POST_USERS_MINIMUM_AGE(false, HttpStatus.BAD_REQUEST.value(), "만 8세 미만은 가입할 수 없습니다."),
@@ -42,6 +44,8 @@ public enum BaseResponseStatus {
 
     DUPLICATED_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "중복된 이메일입니다."),
     INVALID_MEMO(false,HttpStatus.NOT_FOUND.value(), "존재하지 않는 메모입니다."),
+    INVALID_COMMENT(false,HttpStatus.NOT_FOUND.value(), "존재하지 않는 댓글입니다."),
+    COMMENT_IS_DISABLED(false,HttpStatus.NOT_FOUND.value(), "댓글 기능이 해제된 게시글입니다."),
 
     EXISTING_USER(false,HttpStatus.BAD_REQUEST.value(),"이미 존재하는 사용자입니다."),
     PENDING_USER(false,HttpStatus.BAD_REQUEST.value(),"회원 가입이 완료되지 않은 사용자입니다."),
@@ -55,6 +59,7 @@ public enum BaseResponseStatus {
     NOT_FIND_USER(false,HttpStatus.NOT_FOUND.value(),"일치하는 유저가 없습니다."),
     IMAGE_NOT_FOUND(false,HttpStatus.NOT_FOUND.value(),"일치하는 이미지가 없습니다."),
     MEMO_NOT_FOUND(false,HttpStatus.NOT_FOUND.value(),"존재하는 게시글이 없습니다."),
+    COMMENT_NOT_FOUND(false,HttpStatus.NOT_FOUND.value(),"존재하는 댓글이 없습니다."),
     OAUTH_USER(false, HttpStatus.BAD_REQUEST.value(), "소셜 로그인 유저입니다. 카카오 로그인 버튼을 이용하여 로그인 해주세요"),
     INVALID_OAUTH_TYPE(false, HttpStatus.BAD_REQUEST.value(), "알 수 없는 소셜 로그인 형식입니다."),
 
@@ -67,6 +72,7 @@ public enum BaseResponseStatus {
      * 401 :  권한 없음 오류
      */
     NOT_ENOUGH_PERMISSION_EDIT_MEMO(false, HttpStatus.UNAUTHORIZED.value(), "게시글 수정 권한이 없습니다."),
+    NOT_ENOUGH_PERMISSION_DELETE_COMMENT(false, HttpStatus.UNAUTHORIZED.value(), "댓글 삭제 권한이 없습니다."),
 
 
 
@@ -91,13 +97,25 @@ public enum BaseResponseStatus {
     UNEXPECTED_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "예상치 못한 에러가 발생했습니다.");
 
 
-    private final boolean isSuccess;
-    private final int code;
-    private final String message;
+    private boolean isSuccess;
+    private int code;
+    private String message;
 
     private BaseResponseStatus(boolean isSuccess, int code, String message) {
         this.isSuccess = isSuccess;
         this.code = code;
+        this.message = message;
+    }
+
+    public void setSuccess(boolean isSuccess) {
+        this.isSuccess = isSuccess;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public void setMessage(String message) {
         this.message = message;
     }
 }

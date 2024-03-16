@@ -4,7 +4,6 @@ import com.example.demo.src.test.entity.Memo;
 import com.example.demo.src.user.entity.User;
 import lombok.*;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.List;
 
@@ -14,10 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class PatchMemoDto {
-
-    @NotBlank(message = "메모를 입력해주세요.")
     @Size(max = 2200, message = "게시글은 2,200자를 초과할 수 없습니다.")
     private String memo;
+    @Size(max = 100, message = "위치는 100자를 초과할 수 없습니다.")
     private String location;
     private Boolean isLikeCountVisible = true;
     private Boolean isCommentEnabled = true;

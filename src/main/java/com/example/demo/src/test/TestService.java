@@ -1,6 +1,7 @@
 package com.example.demo.src.test;
 
 import com.example.demo.common.exceptions.BaseException;
+import com.example.demo.src.test.entity.Comment;
 import com.example.demo.src.test.entity.Memo;
 import com.example.demo.src.test.entity.MemoImage;
 import com.example.demo.src.test.entity.MemoLog;
@@ -55,7 +56,6 @@ public class TestService {
             } else if (fileType.startsWith("video")) {
                 memoImageDto.setImageType(MemoImage.ImageType.VIDEO);
             }
-            System.out.println(memoImageDto.toString());
             MemoImage memoImage = memoImageDto.toEntity(file, savedMemo);
             memoImageRepository.save(memoImage);
         }
@@ -88,6 +88,36 @@ public class TestService {
 
     }
 
+    public void modifyMemoAdvancedSetting(Long memoId, PatchMemoDto memoDto) throws BaseException {
+        User user = userService.getUserByJwt();
+        Memo memo = memoRepository.findByIdAndState(memoId, ACTIVE)
+                .orElseThrow(() -> new BaseException(MEMO_NOT_FOUND));
+
+        if (memo.getUser() != user) {
+            throw new BaseException(NOT_ENOUGH_PERMISSION_EDIT_MEMO);
+        }
+        memo.updateMemoAdvancedSetting(memoDto);
+
+    }
+
+    public void deleteMemo(Long memoId) throws BaseException {
+        User user = userService.getUserByJwt();
+        Memo memo = memoRepository.findByIdAndState(memoId, ACTIVE)
+                .orElseThrow(() -> new BaseException(MEMO_NOT_FOUND));
+
+        if (memo.getUser() != user) {
+            throw new BaseException(NOT_ENOUGH_PERMISSION_EDIT_MEMO);
+        }
+
+        List<MemoImage> memoImageList = memoImageRepository.findAllByMemoAndState(memo, ACTIVE);
+
+        for (MemoImage memoImage : memoImageList){
+            memoImage.deleteMemoImage();
+        }
+        memo.deleteMemo();
+    }
+
+
     public void modifyMemo(Long memoId, PatchMemoDto memoDto) throws BaseException {
         User user = userService.getUserByJwt();
         Memo memo = memoRepository.findByIdAndState(memoId, ACTIVE)
@@ -97,6 +127,10 @@ public class TestService {
             throw new BaseException(NOT_ENOUGH_PERMISSION_EDIT_MEMO);
         }
 
+        if (memoDto.getMemo() == null) {
+            throw new BaseException(EMPTY_MEMO);
+        }
+
         for (MemoImageDto image : memoDto.getImages()){
             if (image.getId() == null) {
                 throw new BaseException(EMPTY_IMAGE_ID_EXCEPTION);
@@ -104,14 +138,11 @@ public class TestService {
             MemoImage memoImage = memoImageRepository.findByIdAndState(image.getId(), ACTIVE)
                     .orElseThrow(() -> new BaseException(IMAGE_NOT_FOUND));
             if (memoImage.getMemo() != memo) {
-                throw new BaseException(NOT_ENOUGH_PERMISSION_EDIT_MEMO);
+                throw new BaseException(IMAGE_NOT_FOUND);
             }
-
-            System.out.println(image.getState());
             memoImage.updateMemoImage(image);
         }
         // TODO:: tag
-        // alt text
         memo.updateMemo(memoDto);
 
     }
@@ -121,6 +152,39 @@ public class TestService {
         Memo memo = memoRepository.findByIdAndState(postCommentDto.getMemoId(), ACTIVE).
                 orElseThrow(() -> new BaseException(INVALID_MEMO));
 
-        commentRepository.save(postCommentDto.toEntity(memo, user));
+        if (!memo.getIsCommentEnabled()) {
+            throw new BaseException(COMMENT_IS_DISABLED);
+        }
+
+        System.out.println(postCommentDto.getParentCommentId());
+
+        if (postCommentDto.getParentCommentId() != null) {
+            Comment parentComment = commentRepository.findByIdAndMemoIdAndState(
+                            postCommentDto.getParentCommentId(),
+                            postCommentDto.getMemoId(),
+                            ACTIVE).orElseThrow(() -> new BaseException(INVALID_COMMENT));
+            System.out.println(parentComment.getId());
+            commentRepository.save(postCommentDto.toEntity(memo, user, parentComment));
+        } else {
+            commentRepository.save(postCommentDto.toEntity(memo, user, null));
+        }
+    }
+
+    @Transactional
+    public void deleteComment(Long commentId) throws BaseException {
+        User user = userService.getUserByJwt();
+        Comment comment = commentRepository.findByIdAndState(commentId, ACTIVE)
+                            .orElseThrow(() -> new BaseException(COMMENT_NOT_FOUND));
+
+        if (comment.getUser() != user) {
+            throw new BaseException(NOT_ENOUGH_PERMISSION_DELETE_COMMENT);
+        }
+
+        List<Comment> childCommentList = commentRepository.findAllByParentCommentIdAndState(commentId, ACTIVE);
+
+        for (Comment childComment : childCommentList){
+            childComment.deleteComment();
+        }
+        comment.deleteComment();
     }
 }
