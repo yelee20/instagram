@@ -33,8 +33,7 @@ public class GetFollowingUserRes {
         this.targetUserName = targetUser.getUserName();
         this.targetUserFullName = targetUser.getFullName();
         this.profileImageUrl = user.getMobile();
-//        this.postedStoryToday = user.getIsPublic();
-
+        this.postedStoryToday = user.hasPostedStoryWithin24Hours();
         this.isCloseFriend = follow.getIsCloseFriend();
         this.isFollowedByMe = true;
     }

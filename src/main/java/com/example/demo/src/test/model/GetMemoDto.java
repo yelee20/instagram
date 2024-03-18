@@ -3,21 +3,16 @@ package com.example.demo.src.test.model;
 import com.example.demo.src.test.entity.Comment;
 import com.example.demo.src.test.entity.Memo;
 import com.example.demo.src.test.entity.MemoImage;
-import com.example.demo.src.test.entity.MemoLike;
 import com.example.demo.src.user.entity.User;
-import com.example.demo.utils.Formats;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.time.temporal.ChronoUnit;
 
 import static com.example.demo.utils.Formats.formatTimeToString;
 
@@ -87,6 +82,7 @@ public class GetMemoDto {
             memoImageList.add(memoImageDict);
         }
 
+        this.postedStoryToday = user.hasPostedStoryWithin24Hours();
         this.memoCommentNum =  (memo.getIsCommentEnabled()) ? memo.getCommentList().size() : null;
         this.memoImageNum = memo.getMemoImageList().size();
         this.likeNum = (memo.getIsLikeCountVisible()) ? memo.getLikes().size() : null;

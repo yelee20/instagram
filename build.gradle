@@ -18,8 +18,16 @@ configurations {
     }
 }
 
+allprojects {
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
 repositories {
     mavenCentral()
+
 }
 
 dependencies {
@@ -59,6 +67,14 @@ dependencies {
     // AWS
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
     implementation "com.amazonaws:aws-java-sdk-s3:1.12.395"
+
+    // Port One
+    implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
+
+}
+
+jar {
+    enabled = false
 }
 
 test {
