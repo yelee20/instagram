@@ -77,6 +77,20 @@ public class TestController {
         return new BaseResponse<>(result);
     }
 
+    /**
+     * 메모 상세 조회 API
+     * [GET] /app/memos/{memoId}
+     * @return BaseResponse<GetMemoDto>
+     */
+
+    @Operation(summary = "메모 상세 조회", description = "메모 상세 정보를 조회합니다.")
+    @ResponseBody
+    @GetMapping("/memos/{memoId}")
+    public BaseResponse<GetMemoDto> getMemos(@Validated @PathVariable(required = true) Long memoId) {
+        GetMemoDto getMemoDto = testService.getMemoDetail(memoId);
+        return new BaseResponse<>(getMemoDto);
+    }
+
 
     /**
      * 메모 리스트 조회 API
@@ -143,6 +157,23 @@ public class TestController {
         return new BaseResponse<>(result);
     }
 
+    /**
+     * 코멘트 리스트 조회 API
+     * [GET] /app/comments/{memoId}/comments
+     * @return BaseResponse<List<TestDto>>
+     */
+
+    @Operation(summary = "댓글 리스트 조회", description = "메모 id를 받아 댓글 리스트를 조회합니다.")
+    @ResponseBody
+    @GetMapping("/memos/{memoId}/comments")
+    public BaseResponse<List<GetCommentDto>> getCommentsByMemo(@Validated @PathVariable("memoId") Long memoId,
+                                                               @RequestParam(required = true) int startPage,
+                                                               @RequestParam(
+                                                              required = false,
+                                                              defaultValue = "10") int size) {
+        List<GetCommentDto> getCommentDtoList = testService.getComments(memoId, startPage, size);
+        return new BaseResponse<>(getCommentDtoList);
+    }
 
     /**
      * 코멘트 생성 API
@@ -172,6 +203,7 @@ public class TestController {
     }
 
 
+
     /**
      * 코멘트 삭제 API
      * [DELETE] /app/comments/{commentId}
@@ -185,7 +217,7 @@ public class TestController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
     })
     @ResponseBody
-    @DeleteMapping("/comment/{commentId}")
+    @DeleteMapping("/comments/{commentId}")
     public BaseResponse<String> deleteComment(@Validated @PathVariable("commentId") Long commentId) {
         testService.deleteComment(commentId);
         return new BaseResponse<>("댓글 삭제 성공");

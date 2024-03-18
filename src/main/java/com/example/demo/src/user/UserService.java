@@ -2,14 +2,24 @@ package com.example.demo.src.user;
 
 
 
+import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponse;
+import com.example.demo.src.test.entity.Memo;
+import com.example.demo.src.test.entity.MemoLike;
+import com.example.demo.src.test.model.GetMemoDto;
+import com.example.demo.src.user.entity.Follow;
+import com.example.demo.src.user.entity.FollowLog;
 import com.example.demo.src.user.entity.TermsLog;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
 import com.example.demo.utils.SHA256;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +41,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final TermsRepository termsRepository;
     private final TermsLogRepository termsLogRepository;
+    private final FollowRepository followRepository;
+    private final FollowLogRepository followLogRepository;
     private final TermsService termsService;
     private final JwtService jwtService;
 
@@ -242,5 +254,86 @@ public class UserService {
     public User getUserByJwt() {
         Long userId = jwtService.getUserId();
         return userRepository.findByIdAndState(userId, ACTIVE).orElseThrow(() -> new BaseException(NOT_FIND_USER));
+    }
+
+    @Transactional(readOnly = true)
+    public List<GetFollowingUserRes> getFollowingUserList(int startPage, int size) {
+        User user = getUserByJwt();
+
+        Pageable pageable = PageRequest.of(startPage, size);
+        Slice<Follow> followSlice = followRepository.findAllByUserIdAndFollowStateAndState(
+                user.getId(), Follow.followState.ACCEPTED, ACTIVE, pageable);
+        return followSlice.stream()
+                .map(follow -> new GetFollowingUserRes(user, follow.getTargetUser(), follow))
+                .collect(Collectors.toList());
+
+    }
+
+    public String updateFollowStatus(Long targetUserId){
+        User user = getUserByJwt();
+        User targetUser = userRepository.findByIdAndState(targetUserId, ACTIVE)
+                .orElseThrow(() -> new BaseException(NOT_FIND_USER));
+
+        if (user == targetUser) {
+            throw new BaseException(CANNOT_FOLLOW_MY_ACCOUNT);
+        }
+        Optional<Follow> followOptional = followRepository.findByTargetUserIdAndUserId(targetUserId, user.getId());
+        String resultMessage;
+
+        if (followOptional.isPresent()) {
+            Follow follow = followOptional.get();
+            BaseEntity.State state = follow.getState();
+            if (state == ACTIVE){
+                if (follow.getFollowState() == Follow.followState.ACCEPTED){
+                    follow.deleteFollow();
+                    resultMessage = "팔로우 취소 성공";
+                } else {
+                    throw new BaseException(FOLLOW_REQUEST_EXIST);
+                }
+
+            } else {
+                // TODO :: 차단된 계정 로직 추가
+                follow.createFollowRequest(targetUser);
+                resultMessage = "팔로우 요청 성공";
+            }
+            recordFollowLog(follow, user, targetUser);
+        } else {
+            Follow tmpFollow = Follow.create();
+            tmpFollow.setTargetUser(targetUser);
+            tmpFollow.setUser(user);
+            tmpFollow.setIsCloseFriend(false);
+            tmpFollow.createFollowRequest(targetUser);
+            followRepository.save(tmpFollow);
+            resultMessage = "팔로우 요청 성공";
+            recordFollowLog(tmpFollow, user, targetUser);
+        }
+        return resultMessage;
+    }
+    public String updateCloseFriendStatus(Long targetUserId){
+        User user = getUserByJwt();
+        User targetUser = userRepository.findByIdAndState(targetUserId, ACTIVE)
+                .orElseThrow(() -> new BaseException(NOT_FIND_USER));
+
+        if (user == targetUser) {
+            throw new BaseException(CANNOT_FOLLOW_MY_ACCOUNT);
+        }
+        Follow follow = followRepository.findByTargetUserIdAndUserIdAndFollowStateAndState(
+                targetUserId, user.getId(), Follow.followState.ACCEPTED, ACTIVE).orElseThrow(
+                        () -> new BaseException(NOT_FOLLOWING));
+
+        if (follow.getIsCloseFriend()){
+            follow.setIsCloseFriend(false);
+            recordFollowLog(follow, user, targetUser);
+            return "친한 친구 등록 취소 성공";
+        } else {
+            follow.setIsCloseFriend(true);
+            recordFollowLog(follow, user, targetUser);
+            return "친한 친구 등록 성공";
+        }
+    }
+
+    private void recordFollowLog(Follow follow, User user, User targetUser) {
+        FollowLog followLog = follow.createFollowLog(user, targetUser);
+        followLogRepository.save(followLog);
     }
 }

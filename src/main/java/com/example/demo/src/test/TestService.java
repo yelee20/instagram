@@ -4,12 +4,15 @@ import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.src.test.entity.*;
 import com.example.demo.src.test.model.*;
+import com.example.demo.src.user.FollowRepository;
 import com.example.demo.src.user.UserService;
+import com.example.demo.src.user.entity.Follow;
 import com.example.demo.src.user.entity.TermsLog;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.utils.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.example.demo.common.entity.BaseEntity.State.ACTIVE;
 import static com.example.demo.common.response.BaseResponseStatus.*;
@@ -33,6 +37,7 @@ public class TestService {
     private final MemoImageRepository memoImageRepository;
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final FollowRepository followRepository;
     private final UserService userService;
     private final S3UploadService s3UploadService;
 
@@ -77,15 +82,41 @@ public class TestService {
     }
 
     @Transactional(readOnly = true)
+    public GetMemoDto getMemoDetail(Long memoId){
+        User user = userService.getUserByJwt();
+
+        Memo memo = memoRepository.findByIdAndState(memoId, ACTIVE)
+                .orElseThrow(() -> new BaseException(MEMO_NOT_FOUND));
+
+        Slice<Follow> followingUsers = followRepository.findAllByUserIdAndFollowStateAndState(
+                user.getId(), Follow.followState.ACCEPTED, ACTIVE, Pageable.unpaged());
+        List<Long> targetUserIds = followingUsers.stream()
+                .map(follow -> follow.getTargetUser().getId())
+                .collect(Collectors.toList());
+        targetUserIds.add(user.getId());
+
+        if (!memo.getUser().getIsPublic() && !targetUserIds.contains(memo.getUser().getId())){
+            throw new BaseException(NOT_ENOUGH_PERMISSION_TO_ACCESS_MEMO);
+        }
+        return new GetMemoDto(memo, user);
+
+    }
+
+    @Transactional(readOnly = true)
     public List<GetMemoDto> getMemos(int startPage){
+        User user = userService.getUserByJwt();
+        Slice<Follow> followingUsers = followRepository.findAllByUserIdAndFollowStateAndState(
+                user.getId(), Follow.followState.ACCEPTED, ACTIVE, Pageable.unpaged());
+        List<Long> targetUserIds = followingUsers.stream()
+                .map(follow -> follow.getTargetUser().getId())
+                .collect(Collectors.toList());
+        targetUserIds.add(user.getId());
 
-        // 페이징 예제
         PageRequest pageRequest = PageRequest.of(startPage, 5, Sort.by(Sort.Direction.DESC, "id"));
-        Slice<Memo> memoSlice = memoRepository.findAllByState(ACTIVE, pageRequest);
-        Slice<GetMemoDto> getMemoDtoSlice = memoSlice.map(GetMemoDto::new);
-        List<GetMemoDto> getMemoDtoList = getMemoDtoSlice.getContent();
+        Slice<Memo> memoSlice = memoRepository.findAllByUserIdInAndState(targetUserIds, ACTIVE, pageRequest);
+        Slice<GetMemoDto> getMemoDtoSlice = memoSlice.map(memo -> new GetMemoDto(memo, user));
 
-        return getMemoDtoList;
+        return getMemoDtoSlice.getContent();
 
     }
 
@@ -173,6 +204,34 @@ public class TestService {
         // TODO:: tag
         memo.updateMemo(memoDto);
 
+    }
+
+    @Transactional(readOnly = true)
+    public List<GetCommentDto> getComments(Long memoId, int startPage, int size){
+        User user = userService.getUserByJwt();
+
+        Memo memo = memoRepository.findByIdAndState(memoId, ACTIVE)
+                .orElseThrow(() -> new BaseException(MEMO_NOT_FOUND));
+
+        if (!memo.getIsCommentEnabled()) {
+            throw new BaseException(COMMENT_IS_DISABLED);
+        }
+        Slice<Follow> followingUsers = followRepository.findAllByUserIdAndFollowStateAndState(
+                user.getId(), Follow.followState.ACCEPTED, ACTIVE, Pageable.unpaged());
+        List<Long> targetUserIds = followingUsers.stream()
+                .map(follow -> follow.getTargetUser().getId())
+                .collect(Collectors.toList());
+        targetUserIds.add(user.getId());
+
+        if (!memo.getUser().getIsPublic() && !targetUserIds.contains(memo.getUser().getId())){
+            throw new BaseException(NOT_ENOUGH_PERMISSION_TO_ACCESS_MEMO);
+        }
+
+        PageRequest pageRequest = PageRequest.of(startPage, size, Sort.by(Sort.Direction.DESC, "id"));
+        Slice<Comment> commentSlice = commentRepository.findAllByMemoIdAndState(memoId, ACTIVE, pageRequest);
+        Slice<GetCommentDto> getCommentDtoSlice = commentSlice.map(comment -> new GetCommentDto(comment, user));
+
+        return getCommentDtoSlice.getContent();
     }
 
     public void createComment(PostCommentDto postCommentDto){

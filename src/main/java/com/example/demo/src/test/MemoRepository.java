@@ -17,6 +17,7 @@ public interface MemoRepository extends JpaRepository<Memo, Long> {
     //List<Memo> findAllByState(State state);
 
     Slice<Memo> findAllByState(State state, Pageable pageable);
+    Slice<Memo> findAllByUserIdInAndState(List<Long> userIds, State state, Pageable pageable);
 
     Optional<Memo> findByIdAndState(Long memoId, State state);
 

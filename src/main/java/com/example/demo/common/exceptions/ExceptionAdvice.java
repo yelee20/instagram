@@ -9,6 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.List;
@@ -52,6 +53,12 @@ public class ExceptionAdvice {
     }
     @ExceptionHandler(MissingPathVariableException.class)
     public BaseResponse<BaseResponseStatus> missingPathVariableException(MissingPathVariableException exception) {
+        BaseResponseStatus responseStatus = BaseResponseStatus.INVALID_REQUEST_FORMAT;
+        responseStatus.setMessage(exception.getMessage());
+        return new BaseResponse<>(responseStatus);
+    }
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public BaseResponse<BaseResponseStatus> missingServletRequestParameterException(MissingServletRequestParameterException exception) {
         BaseResponseStatus responseStatus = BaseResponseStatus.INVALID_REQUEST_FORMAT;
         responseStatus.setMessage(exception.getMessage());
         return new BaseResponse<>(responseStatus);

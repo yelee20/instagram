@@ -6,11 +6,12 @@ import com.example.demo.src.test.model.MemoDto;
 import com.example.demo.src.test.model.PatchMemoDto;
 import com.example.demo.src.user.entity.User;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
@@ -26,6 +27,7 @@ public class Memo extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
+    @NotNull
     private User user;
 
     @Column(name = "memo", nullable = false)
@@ -43,9 +45,19 @@ public class Memo extends BaseEntity {
     private String location;
 
     // 양방향 매핑(선택 사항)
-    // @BatchSize(size = 5) // BatchSize 설정 예제
+    @BatchSize(size = 5) // BatchSize 설정 예제
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<Comment> commentList = new ArrayList<Comment>();
+
+    @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<MemoImage> memoImageList = new ArrayList<MemoImage>();
+
+    @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<MemoLike> likes = new ArrayList<MemoLike>();
+
+    @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<CollectionDetail> collections = new ArrayList<CollectionDetail>();
+
 
     public void makeMemo(MemoDto memoDto) {
         this.memo = memoDto.getMemo();
@@ -72,6 +84,23 @@ public class Memo extends BaseEntity {
     public void addComment(Comment comment) {
         comment.setMemo(this);
         commentList.add(comment);
+    }
+
+    public boolean isLikedByUser(User user) {
+        for (MemoLike like : likes) {
+            if (like.getUser().equals(user)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean isSavedByUser(User user) {
+        for (CollectionDetail detail : collections) {
+            if (detail.getCollection().getCollectionUsers().contains(user)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Builder

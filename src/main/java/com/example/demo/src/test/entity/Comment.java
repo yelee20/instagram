@@ -7,6 +7,8 @@ import com.example.demo.src.user.entity.User;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
@@ -34,8 +36,20 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "parentCommentId")
     private Comment parentComment;
 
+    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<CommentLike> likes = new ArrayList<CommentLike>();
+
     public void setMemo(Memo memo) {
         this.memo = memo;
+    }
+
+    public boolean isLikedByUser(User user) {
+        for (CommentLike like : likes) {
+            if (like.getUser().equals(user)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Builder

@@ -1,6 +1,8 @@
 package com.example.demo.src.user.entity;
 
 import com.example.demo.common.entity.BaseEntity;
+import com.example.demo.src.test.entity.CollectionDetail;
+import com.example.demo.src.test.entity.CollectionUser;
 import com.example.demo.src.test.entity.Memo;
 import com.example.demo.utils.ValidationAnnotation;
 import jdk.vm.ci.meta.Local;
@@ -11,7 +13,9 @@ import org.w3c.dom.Text;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
@@ -42,6 +46,7 @@ public class User extends BaseEntity {
     private String userName;
 
     @Column(nullable = false)
+    @ColumnDefault("false")
     private Boolean isOAuth;
 
     @Column(length = 30)
@@ -57,13 +62,16 @@ public class User extends BaseEntity {
     private LocalDate birthday;
 
     @Column
-    private Boolean isPublic = true;
+    @ColumnDefault("true")
+    private Boolean isPublic;
 
     @Column(nullable = false)
-    private User.Role role = User.Role.BASIC;
+    @ColumnDefault("BASIC")
+    private User.Role role;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @ColumnDefault("PENDING")
     private User.UserState userState;
 
     public enum Role {
@@ -73,6 +81,9 @@ public class User extends BaseEntity {
     public enum UserState {
         PENDING, ACTIVE, BLOCKED, DORMANT
     }
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<CollectionUser> collectionUsers = new ArrayList<CollectionUser>();
 
     @Builder
     public User(Long id, String email, String mobile, String password, String fullName,

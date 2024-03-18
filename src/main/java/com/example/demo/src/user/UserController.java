@@ -5,6 +5,7 @@ import com.example.demo.common.Constant.SocialLoginType;
 import com.example.demo.common.oauth.OAuthService;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.utils.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponse;
@@ -205,5 +206,46 @@ public class UserController {
         return new BaseResponse<>(getSocialOAuthRes);
     }
 
+
+    /**
+     * 유저 팔로우/ 팔로우 취소 API
+     * [PATCH] /app/follow-user/{targetUserId}
+     * @return BaseResponse<String>
+     */
+    @Operation(summary = "유저 팔로우/팔로우 취소", description = "입력받은 user id로 해당 유저 팔로우/팔로우 취소 동작을 실행합니다.")
+    @ResponseBody
+    @PatchMapping("/follow-user/{targetUserId}")
+    public BaseResponse<String> updateFollowStatus(@Validated @PathVariable("targetUserId") Long targetUserId) {
+        String result = userService.updateFollowStatus(targetUserId);
+        return new BaseResponse<>(result);
+    }
+
+    /**
+     * 팔로잉 목록 조희 API
+     * [ET] /app/following
+     * @return BaseResponse<String>
+     */
+    @Operation(summary = "팔로잉 목록 조회", description = "입력받은 user id로 해당 유저 팔로잉 리스트를 리턴합니다.")
+    @ResponseBody
+    @GetMapping("/following")
+    public BaseResponse<List<GetFollowingUserRes>> getFollowingUserList(@RequestParam(required = true) int startPage,
+                                                                        @RequestParam(required = false,
+                                                                                defaultValue = "5") int size) {
+        List<GetFollowingUserRes> getFollowingUserRes = userService.getFollowingUserList(startPage, size);
+        return new BaseResponse<>(getFollowingUserRes);
+    }
+
+    /**
+     * 친한 친구 등록 / 취소 API
+     * [PATCH] /app/close-friend/{targetUserId}
+     * @return BaseResponse<String>
+     */
+    @Operation(summary = "유저 팔로우/팔로우 취소", description = "입력받은 user id로 해당 유저 팔로우/팔로우 취소 동작을 실행합니다.")
+    @ResponseBody
+    @PatchMapping("/close-friend/{targetUserId}")
+    public BaseResponse<String> updateCloseFriendStatus(@Validated @PathVariable("targetUserId") Long targetUserId) {
+        String result = userService.updateCloseFriendStatus(targetUserId);
+        return new BaseResponse<>(result);
+    }
 
 }

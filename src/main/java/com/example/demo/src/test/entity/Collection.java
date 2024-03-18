@@ -37,6 +37,21 @@ public class Collection extends BaseEntity {
     @Column(nullable = false)
     private Boolean isPublic;
 
+    @OneToMany(mappedBy = "collection")
+    private List<CollectionUser> collectionUsers = new ArrayList<CollectionUser>();
+
+    @OneToMany(mappedBy = "collection")
+    private List<CollectionDetail> collectionDetails = new ArrayList<CollectionDetail>();
+
+    public boolean isAddedToUserCollection(User user, Memo memo) {
+        for (CollectionDetail detail : collectionDetails) {
+            if (detail.getCollection().equals(this) && detail.getMemo().equals(memo)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Builder
     public Collection(Long id, String name, User createdUser, Memo thumbnailMemo, Boolean isPublic) {
         this.id = id;

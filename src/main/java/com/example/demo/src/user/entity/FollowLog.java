@@ -2,12 +2,14 @@ package com.example.demo.src.user.entity;
 
 import com.example.demo.common.entity.BaseEntity;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
 @Getter
+@Setter
 @ToString
 @Entity
 @Table(name = "FOLLOW_LOG")
@@ -32,6 +34,11 @@ public class FollowLog extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean isCloseFriend;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "followState", nullable = false, length = 10)
+    private Follow.followState followState;
+
 
     @Builder
     public FollowLog(Long id, Follow follow, User user, User targetUser, Boolean isCloseFriend

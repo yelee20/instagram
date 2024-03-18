@@ -51,6 +51,8 @@ public enum BaseResponseStatus {
     PENDING_USER(false,HttpStatus.BAD_REQUEST.value(),"회원 가입이 완료되지 않은 사용자입니다."),
     BLOCKED_USER(false,HttpStatus.BAD_REQUEST.value(),"차단된 사용자입니다."),
     DORMANT_USER(false,HttpStatus.BAD_REQUEST.value(),"휴면 계정입니다."),
+    CANNOT_FOLLOW_MY_ACCOUNT(false,HttpStatus.BAD_REQUEST.value(),"같은 계정은 팔로우 할 수 없습니다."),
+    FOLLOW_REQUEST_EXIST(false,HttpStatus.BAD_REQUEST.value(),"팔로우 요청 승인 대기 중인 계정입니다."),
 
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"없는 아이디거나 비밀번호가 틀렸습니다."),
     EMPTY_JWT(false, HttpStatus.UNAUTHORIZED.value(), "JWT를 입력해주세요."),
@@ -60,6 +62,7 @@ public enum BaseResponseStatus {
     IMAGE_NOT_FOUND(false,HttpStatus.NOT_FOUND.value(),"일치하는 이미지가 없습니다."),
     MEMO_NOT_FOUND(false,HttpStatus.NOT_FOUND.value(),"존재하는 게시글이 없습니다."),
     COMMENT_NOT_FOUND(false,HttpStatus.NOT_FOUND.value(),"존재하는 댓글이 없습니다."),
+    NOT_FOLLOWING(false,HttpStatus.NOT_FOUND.value(),"팔로우 하지 않는 유저입니다."),
     OAUTH_USER(false, HttpStatus.BAD_REQUEST.value(), "소셜 로그인 유저입니다. 카카오 로그인 버튼을 이용하여 로그인 해주세요"),
     INVALID_OAUTH_TYPE(false, HttpStatus.BAD_REQUEST.value(), "알 수 없는 소셜 로그인 형식입니다."),
 
@@ -72,6 +75,7 @@ public enum BaseResponseStatus {
      * 401 :  권한 없음 오류
      */
     NOT_ENOUGH_PERMISSION_EDIT_MEMO(false, HttpStatus.UNAUTHORIZED.value(), "게시글 수정 권한이 없습니다."),
+    NOT_ENOUGH_PERMISSION_TO_ACCESS_MEMO(false, HttpStatus.UNAUTHORIZED.value(), "게시글 접근 권한이 없습니다."),
     NOT_ENOUGH_PERMISSION_DELETE_COMMENT(false, HttpStatus.UNAUTHORIZED.value(), "댓글 삭제 권한이 없습니다."),
 
 
